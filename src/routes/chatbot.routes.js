@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const ctrl = require("../controllers/chatbot.controller");
 
-router.get("/", (req, res) => res.json({ message: "ok" }));
+router.post("/", ctrl.chat);
 
 module.exports = router;
