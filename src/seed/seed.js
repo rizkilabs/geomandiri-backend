@@ -3,10 +3,13 @@ const prisma = new PrismaClient();
 const bcrypt = require("bcrypt");
 
 async function main() {
-  // seed services
-  await prisma.service.createMany({
-    data: [
-      {
+  await prisma.fAQ.deleteMany();
+  await prisma.service.deleteMany();
+  await prisma.admin.deleteMany();
+
+  const services = await Promise.all([
+    prisma.service.create({
+      data: {
         name: "Penyusunan UKL-UPL",
         slug: "ukl-upl",
         description:
@@ -15,7 +18,9 @@ async function main() {
         category: "dokumen",
         durationDays: 14,
       },
-      {
+    }),
+    prisma.service.create({
+      data: {
         name: "Penyusunan AMDAL",
         slug: "amdal",
         description: "Analisis Mengenai Dampak Lingkungan untuk proyek besar.",
@@ -23,20 +28,20 @@ async function main() {
         category: "dokumen",
         durationDays: 45,
       },
-    ],
-  });
+    }),
+  ]);
 
-  // seed FAQ
+  // Seed FAQ (pakai id hasil insert service)
   await prisma.fAQ.create({
     data: {
-      serviceId: 1,
+      serviceId: services[0].id,
       question: "Apa itu UKL-UPL?",
       answer:
         "UKL-UPL adalah upaya pengelolaan dan pemantauan lingkungan untuk kegiatan non-AMDAL.",
     },
   });
 
-  // seed admin (password = admin123)
+  // Seed admin
   const hash = await bcrypt.hash("admin123", 10);
   await prisma.admin.create({
     data: {
