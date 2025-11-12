@@ -3,12 +3,17 @@ const prisma = new PrismaClient();
 const bcrypt = require("bcrypt");
 
 async function main() {
-  // Clear old data
+  // 1. Clear old data
   await prisma.fAQ.deleteMany();
   await prisma.service.deleteMany();
   await prisma.admin.deleteMany();
 
-  // Insert Services
+  // 2. Reset auto increment for all tables
+  await prisma.$executeRawUnsafe("ALTER TABLE fAQ AUTO_INCREMENT = 1");
+  await prisma.$executeRawUnsafe("ALTER TABLE service AUTO_INCREMENT = 1");
+  await prisma.$executeRawUnsafe("ALTER TABLE admin AUTO_INCREMENT = 1");
+
+  // 3. Insert Services
   await prisma.service.createMany({
     data: [
       {
@@ -41,12 +46,12 @@ async function main() {
     ],
   });
 
-  // Get service IDs (this is the fix)
+  // 4. Get service IDs
   const ukl = await prisma.service.findUnique({ where: { slug: "ukl-upl" } });
   const amdal = await prisma.service.findUnique({ where: { slug: "amdal" } });
   const sppl = await prisma.service.findUnique({ where: { slug: "sppl" } });
 
-  // Insert FAQs with correct serviceId
+  // 5. Insert FAQs
   await prisma.fAQ.createMany({
     data: [
       // UKL UPL
@@ -94,7 +99,7 @@ async function main() {
     ],
   });
 
-  // Seed Admin
+  // 6. Seed Admin
   const hash = await bcrypt.hash("admin123", 10);
   await prisma.admin.create({
     data: {
